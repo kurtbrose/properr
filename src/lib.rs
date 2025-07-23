@@ -1,7 +1,7 @@
+use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
-use once_cell::sync::Lazy;
 
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
@@ -28,10 +28,17 @@ impl UncertainValue {
         SIGMAS.lock().unwrap().insert(id, sigma);
         let mut d = HashMap::new();
         d.insert(id, 1.0);
-        UncertainValue { nominal, derivatives: d }
+        UncertainValue {
+            nominal,
+            derivatives: d,
+        }
     }
 
-    fn combine(left: &HashMap<u64, f64>, right: &HashMap<u64, f64>, right_sign: f64) -> HashMap<u64, f64> {
+    fn combine(
+        left: &HashMap<u64, f64>,
+        right: &HashMap<u64, f64>,
+        right_sign: f64,
+    ) -> HashMap<u64, f64> {
         let mut out = left.clone();
         for (k, v) in right {
             *out.entry(*k).or_insert(0.0) += right_sign * v;
@@ -65,6 +72,24 @@ impl UncertainValue {
         }
         UncertainValue {
             nominal: self.nominal * other.nominal,
+            derivatives: out,
+        }
+    }
+
+    fn div_internal(&self, other: &UncertainValue) -> UncertainValue {
+        let mut out = HashMap::new();
+        for (k, v) in &self.derivatives {
+            out.insert(*k, v * other.nominal);
+        }
+        for (k, v) in &other.derivatives {
+            *out.entry(*k).or_insert(0.0) -= v * self.nominal;
+        }
+        let denom_sq = other.nominal * other.nominal;
+        for val in out.values_mut() {
+            *val /= denom_sq;
+        }
+        UncertainValue {
+            nominal: self.nominal / other.nominal,
             derivatives: out,
         }
     }
@@ -105,6 +130,14 @@ impl std::ops::Mul for &UncertainValue {
     }
 }
 
+impl std::ops::Div for &UncertainValue {
+    type Output = UncertainValue;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        self.div(rhs)
+    }
+}
+
 impl UncertainValue {
     /// Nominal value of this quantity
     pub fn nominal(&self) -> f64 {
@@ -129,6 +162,11 @@ impl UncertainValue {
     /// Multiply two uncertain values
     pub fn mul(&self, other: &UncertainValue) -> UncertainValue {
         self.mul_internal(other)
+    }
+
+    /// Divide two uncertain values
+    pub fn div(&self, other: &UncertainValue) -> UncertainValue {
+        self.div_internal(other)
     }
 }
 
@@ -173,6 +211,10 @@ impl UncertainValue {
 
     fn __mul__(&self, other: &UncertainValue) -> UncertainValue {
         self.mul(other)
+    }
+
+    fn __truediv__(&self, other: &UncertainValue) -> UncertainValue {
+        self.div(other)
     }
 }
 
