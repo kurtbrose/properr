@@ -54,3 +54,8 @@ z = x - y
 
 assert z.nominal() == 5.0
 ```
+
+## Current Functionality
+
+- Scalar uncertain values (`uval`) with automatic correlation tracking
+- Addition, subtraction, and multiplication of `UncertainValue` instances

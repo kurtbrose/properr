@@ -55,6 +55,20 @@ impl UncertainValue {
         }
     }
 
+    fn mul_internal(&self, other: &UncertainValue) -> UncertainValue {
+        let mut out = HashMap::new();
+        for (k, v) in &self.derivatives {
+            out.insert(*k, v * other.nominal);
+        }
+        for (k, v) in &other.derivatives {
+            *out.entry(*k).or_insert(0.0) += v * self.nominal;
+        }
+        UncertainValue {
+            nominal: self.nominal * other.nominal,
+            derivatives: out,
+        }
+    }
+
     fn stddev_internal(&self) -> f64 {
         let sigmas = SIGMAS.lock().unwrap();
         let mut var: f64 = 0.0;
@@ -102,6 +116,10 @@ impl UncertainValue {
     /// Subtract two uncertain values
     pub fn sub(&self, other: &UncertainValue) -> UncertainValue {
         self.sub_internal(other)
+    }
+
+    fn __mul__(&self, other: &UncertainValue) -> UncertainValue {
+        self.mul_internal(other)
     }
 }
 
