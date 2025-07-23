@@ -13,5 +13,6 @@ authors = [{name = "Properr Developers", email = "devs@example.com"}]
 
 [tool.maturin]
 bindings = "pyo3"
-module-name = "_properr"
+# Install the extension inside the Python package
+module-name = "properr._properr"
 
