@@ -65,3 +65,4 @@ assert z.nominal() == 5.0
 - Propagation through the exponential function
 - Propagation through the natural logarithm function
 - Shared Rust and Python APIs for high performance
+- Creation of arrays of `UncertainValue` instances with `uvals`

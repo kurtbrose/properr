@@ -56,3 +56,12 @@ fn ln_propagates_uncertainty() {
     assert!((y.nominal() - 1.0).abs() < 1e-12);
     assert!((y.stddev() - (0.1 / 2.718281828459045)).abs() < 1e-12);
 }
+
+#[test]
+fn array_creation() {
+    let arr = properr::uvals(vec![1.0, 2.0], vec![0.1, 0.2]);
+    let noms = properr::nominals(arr.clone());
+    let sigs = properr::stddevs(arr);
+    assert_eq!(noms, vec![1.0, 2.0]);
+    assert_eq!(sigs, vec![0.1, 0.2]);
+}
