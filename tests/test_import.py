@@ -82,3 +82,12 @@ def test_uncertain_ln():
 
     assert properr.nominal(y) == pytest.approx(1.0)
     assert properr.stddev(y) == pytest.approx(0.1 / 2.718281828459045)
+
+
+def test_uvals_array_creation():
+    arr = properr.uvals([1.0, 2.0], [0.1, 0.2])
+    noms = properr.nominals(arr)
+    sigs = properr.stddevs(properr.uvals([1.0, 2.0], [0.1, 0.2]))
+
+    assert noms == pytest.approx([1.0, 2.0])
+    assert sigs == pytest.approx([0.1, 0.2])

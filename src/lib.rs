@@ -309,6 +309,29 @@ pub fn sqrt(v: &UncertainValue) -> UncertainValue {
     v.sqrt()
 }
 
+/// Create multiple uncertain values from vectors of nominals and sigmas
+#[cfg_attr(feature = "python", pyfunction)]
+pub fn uvals(nominals: Vec<f64>, sigmas: Vec<f64>) -> Vec<UncertainValue> {
+    assert_eq!(nominals.len(), sigmas.len());
+    nominals
+        .into_iter()
+        .zip(sigmas.into_iter())
+        .map(|(n, s)| UncertainValue::new(n, s))
+        .collect()
+}
+
+/// Extract nominal values from a collection of uncertain values
+#[cfg_attr(feature = "python", pyfunction)]
+pub fn nominals(values: Vec<UncertainValue>) -> Vec<f64> {
+    values.iter().map(|v| v.nominal()).collect()
+}
+
+/// Extract standard deviations from a collection of uncertain values
+#[cfg_attr(feature = "python", pyfunction)]
+pub fn stddevs(values: Vec<UncertainValue>) -> Vec<f64> {
+    values.iter().map(|v| v.stddev()).collect()
+}
+
 #[cfg(feature = "python")]
 #[pymethods]
 impl UncertainValue {
@@ -368,8 +391,11 @@ impl UncertainValue {
 #[pymodule]
 fn _properr(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(uval, m)?)?;
+    m.add_function(wrap_pyfunction!(uvals, m)?)?;
     m.add_function(wrap_pyfunction!(nominal, m)?)?;
+    m.add_function(wrap_pyfunction!(nominals, m)?)?;
     m.add_function(wrap_pyfunction!(stddev, m)?)?;
+    m.add_function(wrap_pyfunction!(stddevs, m)?)?;
     m.add_function(wrap_pyfunction!(sin, m)?)?;
     m.add_function(wrap_pyfunction!(cos, m)?)?;
     m.add_function(wrap_pyfunction!(exp, m)?)?;
