@@ -7,6 +7,7 @@ _rust = import_module("._properr", package=__name__)
 uval = _rust.uval
 nominal = _rust.nominal
 stddev = _rust.stddev
+sin = _rust.sin
 UncertainValue = _rust.UncertainValue
 
-__all__ = ["uval", "nominal", "stddev", "UncertainValue"]
+__all__ = ["uval", "nominal", "stddev", "sin", "UncertainValue"]

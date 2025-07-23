@@ -15,3 +15,11 @@ fn division_cancels_uncertainty() {
     assert_eq!(y.nominal(), 1.0);
     assert_eq!(y.stddev(), 0.0);
 }
+
+#[test]
+fn sine_propagates_uncertainty() {
+    let x = UncertainValue::new(0.0, 1.0);
+    let y = x.sin();
+    assert_eq!(y.nominal(), 0.0);
+    assert_eq!(y.stddev(), 1.0);
+}

@@ -1,5 +1,6 @@
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
+use std::f64;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
 
@@ -94,6 +95,19 @@ impl UncertainValue {
         }
     }
 
+    fn sin_internal(&self) -> UncertainValue {
+        let nominal = self.nominal.sin();
+        let factor = self.nominal.cos();
+        let mut out = HashMap::new();
+        for (k, v) in &self.derivatives {
+            out.insert(*k, v * factor);
+        }
+        UncertainValue {
+            nominal,
+            derivatives: out,
+        }
+    }
+
     fn stddev_internal(&self) -> f64 {
         let sigmas = SIGMAS.lock().unwrap();
         let mut var: f64 = 0.0;
@@ -168,6 +182,11 @@ impl UncertainValue {
     pub fn div(&self, other: &UncertainValue) -> UncertainValue {
         self.div_internal(other)
     }
+
+    /// Sine of an uncertain value
+    pub fn sin(&self) -> UncertainValue {
+        self.sin_internal()
+    }
 }
 
 /// Create a new uncertain value from a nominal value and standard deviation
@@ -186,6 +205,12 @@ pub fn nominal(v: &UncertainValue) -> f64 {
 #[cfg_attr(feature = "python", pyfunction)]
 pub fn stddev(v: &UncertainValue) -> f64 {
     v.stddev()
+}
+
+/// Compute the sine of an uncertain quantity
+#[cfg_attr(feature = "python", pyfunction)]
+pub fn sin(v: &UncertainValue) -> UncertainValue {
+    v.sin()
 }
 
 #[cfg(feature = "python")]
@@ -216,6 +241,11 @@ impl UncertainValue {
     fn __truediv__(&self, other: &UncertainValue) -> UncertainValue {
         self.div(other)
     }
+
+    #[pyo3(name = "sin")]
+    fn py_sin(&self) -> UncertainValue {
+        self.sin()
+    }
 }
 
 #[cfg(feature = "python")]
@@ -224,6 +254,7 @@ fn _properr(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(uval, m)?)?;
     m.add_function(wrap_pyfunction!(nominal, m)?)?;
     m.add_function(wrap_pyfunction!(stddev, m)?)?;
+    m.add_function(wrap_pyfunction!(sin, m)?)?;
     m.add_class::<UncertainValue>()?;
     Ok(())
 }

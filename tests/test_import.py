@@ -41,3 +41,11 @@ def test_uncertain_division():
     assert properr.stddev(z) == pytest.approx(0.5 ** 0.5)
     assert properr.nominal(z2) == 1.0
     assert properr.stddev(z2) == 0.0
+
+
+def test_uncertain_sine():
+    x = properr.uval(0.0, 1.0)
+    y = properr.sin(x)
+
+    assert properr.nominal(y) == 0.0
+    assert properr.stddev(y) == 1.0
