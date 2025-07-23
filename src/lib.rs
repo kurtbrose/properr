@@ -22,6 +22,15 @@ pub struct UncertainValue {
 }
 
 impl UncertainValue {
+    /// Create a new uncertain value from a nominal value and standard deviation
+    pub fn new(nominal: f64, sigma: f64) -> Self {
+        let id = NEXT_ID.fetch_add(1, Ordering::SeqCst);
+        SIGMAS.lock().unwrap().insert(id, sigma);
+        let mut d = HashMap::new();
+        d.insert(id, 1.0);
+        UncertainValue { nominal, derivatives: d }
+    }
+
     fn combine(left: &HashMap<u64, f64>, right: &HashMap<u64, f64>, right_sign: f64) -> HashMap<u64, f64> {
         let mut out = left.clone();
         for (k, v) in right {
@@ -99,11 +108,7 @@ impl UncertainValue {
 /// Create a new uncertain value from a nominal value and standard deviation
 #[cfg_attr(feature = "python", pyfunction)]
 pub fn uval(nominal: f64, sigma: f64) -> UncertainValue {
-    let id = NEXT_ID.fetch_add(1, Ordering::SeqCst);
-    SIGMAS.lock().unwrap().insert(id, sigma);
-    let mut d = HashMap::new();
-    d.insert(id, 1.0);
-    UncertainValue { nominal, derivatives: d }
+    UncertainValue::new(nominal, sigma)
 }
 
 /// Get the nominal value of an uncertain quantity
@@ -121,6 +126,16 @@ pub fn stddev(v: &UncertainValue) -> f64 {
 #[cfg(feature = "python")]
 #[pymethods]
 impl UncertainValue {
+    #[pyo3(name = "nominal")]
+    fn py_nominal(&self) -> f64 {
+        self.nominal()
+    }
+
+    #[pyo3(name = "stddev")]
+    fn py_stddev(&self) -> f64 {
+        self.stddev()
+    }
+
     fn __add__(&self, other: &UncertainValue) -> UncertainValue {
         self.add(other)
     }
