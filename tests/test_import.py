@@ -10,12 +10,12 @@ def test_uncertain_arithmetic():
     z2 = x - x
 
     assert properr.nominal(z) == 0.0
-    assert properr.stddev(z) == pytest.approx(2 ** 0.5)
+    assert properr.stddev(z) == pytest.approx(2**0.5)
     assert properr.stddev(z2) == 0.0
 
     # object methods mirror the module-level helpers
     assert z.nominal() == 0.0
-    assert z.stddev() == pytest.approx(2 ** 0.5)
+    assert z.stddev() == pytest.approx(2**0.5)
 
 
 def test_uncertain_multiplication():
@@ -38,7 +38,7 @@ def test_uncertain_division():
     z2 = x / x
 
     assert properr.nominal(z) == 5.0
-    assert properr.stddev(z) == pytest.approx(0.5 ** 0.5)
+    assert properr.stddev(z) == pytest.approx(0.5**0.5)
     assert properr.nominal(z2) == 1.0
     assert properr.stddev(z2) == 0.0
 
@@ -65,3 +65,12 @@ def test_uncertain_sqrt():
 
     assert properr.nominal(y) == 2.0
     assert properr.stddev(y) == pytest.approx(0.125)
+
+
+def test_uncertain_exp():
+    x = properr.uval(1.0, 0.1)
+    y = properr.exp(x)
+
+    assert properr.nominal(y) == pytest.approx(2.718281828459045)
+    # derivative is e^x -> variance = (e^1 * 0.1)^2 = (0.2718281828)^2
+    assert properr.stddev(y) == pytest.approx((2.718281828459045 * 0.1))
