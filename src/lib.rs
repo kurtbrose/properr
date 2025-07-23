@@ -8,6 +8,8 @@ use std::sync::Mutex;
 use pyo3::prelude::*;
 #[cfg(feature = "python")]
 use pyo3::wrap_pyfunction;
+#[cfg(feature = "python")]
+use pyo3::types::PyTuple;
 
 /// Global counter for assigning unique variable ids
 static NEXT_ID: AtomicU64 = AtomicU64::new(0);
@@ -384,6 +386,72 @@ impl UncertainValue {
     #[pyo3(name = "sqrt")]
     fn py_sqrt(&self) -> UncertainValue {
         self.sqrt()
+    }
+
+    /// Priority for NumPy ufunc dispatch
+    #[pyo3(name = "__array_priority__")]
+    fn array_priority(&self) -> f64 {
+        1000.0
+    }
+
+    /// NumPy ufunc support
+    #[pyo3(name = "__array_ufunc__", signature = (ufunc, method, *inputs, **kwargs))]
+    fn array_ufunc(
+        &self,
+        ufunc: &PyAny,
+        method: &str,
+        inputs: &PyTuple,
+        kwargs: Option<&PyAny>,
+        py: Python,
+    ) -> PyResult<PyObject> {
+        let _ = kwargs;
+        if method != "__call__" {
+            return Ok(py.NotImplemented());
+        }
+        let name: &str = ufunc.getattr("__name__")?.extract()?;
+        match name {
+            "add" => {
+                let a = inputs.get_item(0)?.extract::<PyRef<UncertainValue>>()?;
+                let b = inputs.get_item(1)?.extract::<PyRef<UncertainValue>>()?;
+                Py::new(py, a.add(&b)).map(|v| v.into_py(py))
+            }
+            "subtract" => {
+                let a = inputs.get_item(0)?.extract::<PyRef<UncertainValue>>()?;
+                let b = inputs.get_item(1)?.extract::<PyRef<UncertainValue>>()?;
+                Py::new(py, a.sub(&b)).map(|v| v.into_py(py))
+            }
+            "multiply" => {
+                let a = inputs.get_item(0)?.extract::<PyRef<UncertainValue>>()?;
+                let b = inputs.get_item(1)?.extract::<PyRef<UncertainValue>>()?;
+                Py::new(py, a.mul(&b)).map(|v| v.into_py(py))
+            }
+            "true_divide" | "divide" => {
+                let a = inputs.get_item(0)?.extract::<PyRef<UncertainValue>>()?;
+                let b = inputs.get_item(1)?.extract::<PyRef<UncertainValue>>()?;
+                Py::new(py, a.div(&b)).map(|v| v.into_py(py))
+            }
+            "sin" => {
+                let a = inputs.get_item(0)?.extract::<PyRef<UncertainValue>>()?;
+                Py::new(py, a.sin()).map(|v| v.into_py(py))
+            }
+            "cos" => {
+                let a = inputs.get_item(0)?.extract::<PyRef<UncertainValue>>()?;
+                Py::new(py, a.cos()).map(|v| v.into_py(py))
+            }
+            "exp" => {
+                let a = inputs.get_item(0)?.extract::<PyRef<UncertainValue>>()?;
+                Py::new(py, a.exp()).map(|v| v.into_py(py))
+            }
+            "log" => {
+                let a = inputs.get_item(0)?.extract::<PyRef<UncertainValue>>()?;
+                Py::new(py, a.ln()).map(|v| v.into_py(py))
+            }
+            "sqrt" => {
+                let a = inputs.get_item(0)?.extract::<PyRef<UncertainValue>>()?;
+                Py::new(py, a.sqrt()).map(|v| v.into_py(py))
+            }
+            _ => Ok(py.NotImplemented()),
+        }
     }
 }
 
