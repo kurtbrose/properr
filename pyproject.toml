@@ -11,6 +11,9 @@ requires-python = ">=3.8"
 license = {file = "LICENSE"}
 authors = [{name = "Properr Developers", email = "devs@example.com"}]
 
+[project.optional-dependencies]
+test = ["pytest"]
+
 [tool.maturin]
 bindings = "pyo3"
 # Install the extension inside the Python package
