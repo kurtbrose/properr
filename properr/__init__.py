@@ -8,6 +8,7 @@ uval = _rust.uval
 nominal = _rust.nominal
 stddev = _rust.stddev
 sin = _rust.sin
+cos = _rust.cos
 UncertainValue = _rust.UncertainValue
 
-__all__ = ["uval", "nominal", "stddev", "sin", "UncertainValue"]
+__all__ = ["uval", "nominal", "stddev", "sin", "cos", "UncertainValue"]
