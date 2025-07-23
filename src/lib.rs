@@ -134,6 +134,19 @@ impl UncertainValue {
         }
     }
 
+    fn exp_internal(&self) -> UncertainValue {
+        let nominal = self.nominal.exp();
+        let factor = nominal;
+        let mut out = HashMap::new();
+        for (k, v) in &self.derivatives {
+            out.insert(*k, v * factor);
+        }
+        UncertainValue {
+            nominal,
+            derivatives: out,
+        }
+    }
+
     fn stddev_internal(&self) -> f64 {
         let sigmas = SIGMAS.lock().unwrap();
         let mut var: f64 = 0.0;
@@ -219,6 +232,11 @@ impl UncertainValue {
         self.cos_internal()
     }
 
+    /// Exponential of an uncertain value
+    pub fn exp(&self) -> UncertainValue {
+        self.exp_internal()
+    }
+
     /// Square root of an uncertain value
     pub fn sqrt(&self) -> UncertainValue {
         self.sqrt_internal()
@@ -253,6 +271,12 @@ pub fn sin(v: &UncertainValue) -> UncertainValue {
 #[cfg_attr(feature = "python", pyfunction)]
 pub fn cos(v: &UncertainValue) -> UncertainValue {
     v.cos()
+}
+
+/// Compute the exponential of an uncertain quantity
+#[cfg_attr(feature = "python", pyfunction)]
+pub fn exp(v: &UncertainValue) -> UncertainValue {
+    v.exp()
 }
 
 /// Compute the square root of an uncertain quantity
@@ -300,6 +324,11 @@ impl UncertainValue {
         self.cos()
     }
 
+    #[pyo3(name = "exp")]
+    fn py_exp(&self) -> UncertainValue {
+        self.exp()
+    }
+
     #[pyo3(name = "sqrt")]
     fn py_sqrt(&self) -> UncertainValue {
         self.sqrt()
@@ -314,6 +343,7 @@ fn _properr(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(stddev, m)?)?;
     m.add_function(wrap_pyfunction!(sin, m)?)?;
     m.add_function(wrap_pyfunction!(cos, m)?)?;
+    m.add_function(wrap_pyfunction!(exp, m)?)?;
     m.add_function(wrap_pyfunction!(sqrt, m)?)?;
     m.add_class::<UncertainValue>()?;
     Ok(())

@@ -62,4 +62,5 @@ assert z.nominal() == 5.0
 - Propagation through the sine function
 - Propagation through the cosine function
 - Propagation through the square root function
+- Propagation through the exponential function
 - Shared Rust and Python APIs for high performance
