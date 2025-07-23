@@ -1,0 +1,13 @@
+[package]
+name = "properr"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "A modern uncertainty propagation library."
+
+[lib]
+name = "_properr"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.19", features = ["extension-module"] }
