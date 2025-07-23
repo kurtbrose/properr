@@ -60,3 +60,4 @@ assert z.nominal() == 5.0
 - Scalar uncertain values (`uval`) with automatic correlation tracking
 - Addition, subtraction, multiplication, and division of `UncertainValue` instances
 - Propagation through the sine function
+- Propagation through the cosine function

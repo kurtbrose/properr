@@ -49,3 +49,11 @@ def test_uncertain_sine():
 
     assert properr.nominal(y) == 0.0
     assert properr.stddev(y) == 1.0
+
+
+def test_uncertain_cosine():
+    x = properr.uval(0.0, 1.0)
+    y = properr.cos(x)
+
+    assert properr.nominal(y) == 1.0
+    assert properr.stddev(y) == 0.0
