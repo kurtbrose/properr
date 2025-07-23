@@ -67,3 +67,4 @@ assert z.nominal() == 5.0
 - Shared Rust and Python APIs for high performance
 - Creation of arrays of `UncertainValue` instances with `uvals`
 - NumPy ufunc integration for arithmetic and math functions
+- Decorator for black-box Python functions with `@uncertain_function`
