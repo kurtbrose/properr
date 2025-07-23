@@ -10,7 +10,6 @@ Create a modern, performant, and composable library for numerical uncertainty pr
 * Support scalar and array values with uncertainties
 * Propagate uncertainties through arbitrary arithmetic and common math functions
 * Interoperate cleanly with `numpy`, `pint`, and optionally `sympy`
-* Provide both Python and Rust APIs, with Rust handling the core compute logic for performance
 
 ---
 
