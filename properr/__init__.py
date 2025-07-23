@@ -10,6 +10,7 @@ stddev = _rust.stddev
 sin = _rust.sin
 cos = _rust.cos
 exp = _rust.exp
+ln = _rust.ln
 sqrt = _rust.sqrt
 UncertainValue = _rust.UncertainValue
 
@@ -20,6 +21,7 @@ __all__ = [
     "sin",
     "cos",
     "exp",
+    "ln",
     "sqrt",
     "UncertainValue",
 ]
