@@ -66,3 +66,4 @@ assert z.nominal() == 5.0
 - Propagation through the natural logarithm function
 - Shared Rust and Python APIs for high performance
 - Creation of arrays of `UncertainValue` instances with `uvals`
+- NumPy ufunc integration for arithmetic and math functions
