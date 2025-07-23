@@ -1,0 +1,17 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "properr"
+version = "0.1.0"
+description = "A modern uncertainty propagation library"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+authors = [{name = "Properr Developers", email = "devs@example.com"}]
+
+[tool.maturin]
+bindings = "pyo3"
+module-name = "_properr"
+
