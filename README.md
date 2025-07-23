@@ -14,3 +14,8 @@ properr/          # Python package
 ```
 
 Run `maturin develop` to build and install the package in development mode.
+
+## Current Functionality
+
+- Scalar uncertain values (`uval`) with automatic correlation tracking
+- Addition, subtraction, and multiplication of `UncertainValue` instances

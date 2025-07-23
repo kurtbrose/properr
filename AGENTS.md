@@ -8,7 +8,6 @@ Here is the goal we are working towards:
 Create a modern, performant, and composable library for numerical uncertainty propagation that improves upon the classic Python `uncertainties` package. The library should:
 
 * Support scalar and array values with uncertainties
-* Track correlations between variables automatically
 * Propagate uncertainties through arbitrary arithmetic and common math functions
 * Interoperate cleanly with `numpy`, `pint`, and optionally `sympy`
 * Provide both Python and Rust APIs, with Rust handling the core compute logic for performance
