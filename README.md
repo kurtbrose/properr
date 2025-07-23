@@ -61,3 +61,5 @@ assert z.nominal() == 5.0
 - Addition, subtraction, multiplication, and division of `UncertainValue` instances
 - Propagation through the sine function
 - Propagation through the cosine function
+- Propagation through the square root function
+- Shared Rust and Python APIs for high performance

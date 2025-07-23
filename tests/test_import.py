@@ -57,3 +57,11 @@ def test_uncertain_cosine():
 
     assert properr.nominal(y) == 1.0
     assert properr.stddev(y) == 0.0
+
+
+def test_uncertain_sqrt():
+    x = properr.uval(4.0, 0.5)
+    y = properr.sqrt(x)
+
+    assert properr.nominal(y) == 2.0
+    assert properr.stddev(y) == pytest.approx(0.125)

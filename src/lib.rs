@@ -121,6 +121,19 @@ impl UncertainValue {
         }
     }
 
+    fn sqrt_internal(&self) -> UncertainValue {
+        let nominal = self.nominal.sqrt();
+        let factor = 0.5 / nominal;
+        let mut out = HashMap::new();
+        for (k, v) in &self.derivatives {
+            out.insert(*k, v * factor);
+        }
+        UncertainValue {
+            nominal,
+            derivatives: out,
+        }
+    }
+
     fn stddev_internal(&self) -> f64 {
         let sigmas = SIGMAS.lock().unwrap();
         let mut var: f64 = 0.0;
@@ -205,6 +218,11 @@ impl UncertainValue {
     pub fn cos(&self) -> UncertainValue {
         self.cos_internal()
     }
+
+    /// Square root of an uncertain value
+    pub fn sqrt(&self) -> UncertainValue {
+        self.sqrt_internal()
+    }
 }
 
 /// Create a new uncertain value from a nominal value and standard deviation
@@ -235,6 +253,12 @@ pub fn sin(v: &UncertainValue) -> UncertainValue {
 #[cfg_attr(feature = "python", pyfunction)]
 pub fn cos(v: &UncertainValue) -> UncertainValue {
     v.cos()
+}
+
+/// Compute the square root of an uncertain quantity
+#[cfg_attr(feature = "python", pyfunction)]
+pub fn sqrt(v: &UncertainValue) -> UncertainValue {
+    v.sqrt()
 }
 
 #[cfg(feature = "python")]
@@ -275,6 +299,11 @@ impl UncertainValue {
     fn py_cos(&self) -> UncertainValue {
         self.cos()
     }
+
+    #[pyo3(name = "sqrt")]
+    fn py_sqrt(&self) -> UncertainValue {
+        self.sqrt()
+    }
 }
 
 #[cfg(feature = "python")]
@@ -285,6 +314,7 @@ fn _properr(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(stddev, m)?)?;
     m.add_function(wrap_pyfunction!(sin, m)?)?;
     m.add_function(wrap_pyfunction!(cos, m)?)?;
+    m.add_function(wrap_pyfunction!(sqrt, m)?)?;
     m.add_class::<UncertainValue>()?;
     Ok(())
 }
