@@ -1,8 +1,12 @@
-use pyo3::prelude::*;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
 use once_cell::sync::Lazy;
+
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
+#[cfg(feature = "python")]
+use pyo3::wrap_pyfunction;
 
 /// Global counter for assigning unique variable ids
 static NEXT_ID: AtomicU64 = AtomicU64::new(0);
@@ -10,19 +14,24 @@ static NEXT_ID: AtomicU64 = AtomicU64::new(0);
 static SIGMAS: Lazy<Mutex<HashMap<u64, f64>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 
 /// Representation of a value with uncertainty
-#[pyclass]
+#[cfg_attr(feature = "python", pyclass)]
 #[derive(Clone)]
-struct UncertainValue {
+pub struct UncertainValue {
     nominal: f64,
     derivatives: HashMap<u64, f64>,
 }
 
 impl UncertainValue {
-    fn combine(
-        left: &HashMap<u64, f64>,
-        right: &HashMap<u64, f64>,
-        right_sign: f64,
-    ) -> HashMap<u64, f64> {
+    /// Create a new uncertain value from a nominal value and standard deviation
+    pub fn new(nominal: f64, sigma: f64) -> Self {
+        let id = NEXT_ID.fetch_add(1, Ordering::SeqCst);
+        SIGMAS.lock().unwrap().insert(id, sigma);
+        let mut d = HashMap::new();
+        d.insert(id, 1.0);
+        UncertainValue { nominal, derivatives: d }
+    }
+
+    fn combine(left: &HashMap<u64, f64>, right: &HashMap<u64, f64>, right_sign: f64) -> HashMap<u64, f64> {
         let mut out = left.clone();
         for (k, v) in right {
             *out.entry(*k).or_insert(0.0) += right_sign * v;
@@ -30,6 +39,7 @@ impl UncertainValue {
         out
     }
 
+    /// Internal addition used by both Rust and Python implementations
     fn add_internal(&self, other: &UncertainValue) -> UncertainValue {
         UncertainValue {
             nominal: self.nominal + other.nominal,
@@ -37,6 +47,7 @@ impl UncertainValue {
         }
     }
 
+    /// Internal subtraction used by both Rust and Python implementations
     fn sub_internal(&self, other: &UncertainValue) -> UncertainValue {
         UncertainValue {
             nominal: self.nominal - other.nominal,
@@ -70,45 +81,40 @@ impl UncertainValue {
     }
 }
 
-#[pyfunction]
-fn add(a: f64, b: f64) -> f64 {
-    a + b
+impl std::ops::Add for &UncertainValue {
+    type Output = UncertainValue;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        self.add(rhs)
+    }
 }
 
-#[pyfunction]
-fn uval(nominal: f64, sigma: f64) -> PyResult<UncertainValue> {
-    let id = NEXT_ID.fetch_add(1, Ordering::SeqCst);
-    SIGMAS.lock().unwrap().insert(id, sigma);
-    let mut d = HashMap::new();
-    d.insert(id, 1.0);
-    Ok(UncertainValue { nominal, derivatives: d })
+impl std::ops::Sub for &UncertainValue {
+    type Output = UncertainValue;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        self.sub(rhs)
+    }
 }
 
-#[pyfunction]
-fn nominal(v: &UncertainValue) -> f64 {
-    v.nominal
-}
-
-#[pyfunction]
-fn stddev(v: &UncertainValue) -> PyResult<f64> {
-    Ok(v.stddev_internal())
-}
-
-#[pymethods]
 impl UncertainValue {
-    fn nominal(&self) -> f64 {
+    /// Nominal value of this quantity
+    pub fn nominal(&self) -> f64 {
         self.nominal
     }
 
-    fn stddev(&self) -> f64 {
+    /// Standard deviation of this quantity
+    pub fn stddev(&self) -> f64 {
         self.stddev_internal()
     }
 
-    fn __add__(&self, other: &UncertainValue) -> UncertainValue {
+    /// Add two uncertain values
+    pub fn add(&self, other: &UncertainValue) -> UncertainValue {
         self.add_internal(other)
     }
 
-    fn __sub__(&self, other: &UncertainValue) -> UncertainValue {
+    /// Subtract two uncertain values
+    pub fn sub(&self, other: &UncertainValue) -> UncertainValue {
         self.sub_internal(other)
     }
 
@@ -117,9 +123,49 @@ impl UncertainValue {
     }
 }
 
+/// Create a new uncertain value from a nominal value and standard deviation
+#[cfg_attr(feature = "python", pyfunction)]
+pub fn uval(nominal: f64, sigma: f64) -> UncertainValue {
+    UncertainValue::new(nominal, sigma)
+}
+
+/// Get the nominal value of an uncertain quantity
+#[cfg_attr(feature = "python", pyfunction)]
+pub fn nominal(v: &UncertainValue) -> f64 {
+    v.nominal()
+}
+
+/// Compute the standard deviation of an uncertain quantity
+#[cfg_attr(feature = "python", pyfunction)]
+pub fn stddev(v: &UncertainValue) -> f64 {
+    v.stddev()
+}
+
+#[cfg(feature = "python")]
+#[pymethods]
+impl UncertainValue {
+    #[pyo3(name = "nominal")]
+    fn py_nominal(&self) -> f64 {
+        self.nominal()
+    }
+
+    #[pyo3(name = "stddev")]
+    fn py_stddev(&self) -> f64 {
+        self.stddev()
+    }
+
+    fn __add__(&self, other: &UncertainValue) -> UncertainValue {
+        self.add(other)
+    }
+
+    fn __sub__(&self, other: &UncertainValue) -> UncertainValue {
+        self.sub(other)
+    }
+}
+
+#[cfg(feature = "python")]
 #[pymodule]
 fn _properr(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(add, m)?)?;
     m.add_function(wrap_pyfunction!(uval, m)?)?;
     m.add_function(wrap_pyfunction!(nominal, m)?)?;
     m.add_function(wrap_pyfunction!(stddev, m)?)?;
