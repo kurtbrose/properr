@@ -37,6 +37,13 @@ impl UncertainValue {
         }
     }
 
+    /// Create an uncertain value from a nominal and a derivative map. This is
+    /// primarily used by higher level helpers that construct new values from
+    /// externally computed derivatives.
+    pub fn from_parts(nominal: f64, derivatives: HashMap<u64, f64>) -> Self {
+        UncertainValue { nominal, derivatives }
+    }
+
     fn combine(
         left: &HashMap<u64, f64>,
         right: &HashMap<u64, f64>,
@@ -311,6 +318,15 @@ pub fn sqrt(v: &UncertainValue) -> UncertainValue {
     v.sqrt()
 }
 
+/// Construct an uncertain value from a nominal value and a derivative map
+#[cfg_attr(feature = "python", pyfunction)]
+pub fn from_parts(
+    nominal: f64,
+    derivatives: HashMap<u64, f64>,
+) -> UncertainValue {
+    UncertainValue::from_parts(nominal, derivatives)
+}
+
 /// Create multiple uncertain values from vectors of nominals and sigmas
 #[cfg_attr(feature = "python", pyfunction)]
 pub fn uvals(nominals: Vec<f64>, sigmas: Vec<f64>) -> Vec<UncertainValue> {
@@ -345,6 +361,11 @@ impl UncertainValue {
     #[pyo3(name = "stddev")]
     fn py_stddev(&self) -> f64 {
         self.stddev()
+    }
+
+    #[pyo3(name = "_derivatives")]
+    fn py_derivatives(&self) -> HashMap<u64, f64> {
+        self.derivatives.clone()
     }
 
     fn __add__(&self, other: &UncertainValue) -> UncertainValue {
@@ -469,6 +490,7 @@ fn _properr(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(exp, m)?)?;
     m.add_function(wrap_pyfunction!(ln, m)?)?;
     m.add_function(wrap_pyfunction!(sqrt, m)?)?;
+    m.add_function(wrap_pyfunction!(from_parts, m)?)?;
     m.add_class::<UncertainValue>()?;
     Ok(())
 }

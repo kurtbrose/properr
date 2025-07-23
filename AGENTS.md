@@ -77,7 +77,6 @@ stddev(z)                 # ~1.414
 
 Optional extensions:
 
-* `@uncertain_function` decorator for black-box propagation
 * Pretty-printing for Jupyter
 
 ---
