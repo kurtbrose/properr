@@ -74,3 +74,11 @@ def test_uncertain_exp():
     assert properr.nominal(y) == pytest.approx(2.718281828459045)
     # derivative is e^x -> variance = (e^1 * 0.1)^2 = (0.2718281828)^2
     assert properr.stddev(y) == pytest.approx((2.718281828459045 * 0.1))
+
+
+def test_uncertain_ln():
+    x = properr.uval(2.718281828459045, 0.1)
+    y = properr.ln(x)
+
+    assert properr.nominal(y) == pytest.approx(1.0)
+    assert properr.stddev(y) == pytest.approx(0.1 / 2.718281828459045)

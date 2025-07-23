@@ -48,3 +48,11 @@ fn exp_propagates_uncertainty() {
     assert!((y.nominal() - 2.718281828459045).abs() < 1e-12);
     assert!((y.stddev() - 0.27182818284590454).abs() < 1e-12);
 }
+
+#[test]
+fn ln_propagates_uncertainty() {
+    let x = UncertainValue::new(2.718281828459045, 0.1);
+    let y = x.ln();
+    assert!((y.nominal() - 1.0).abs() < 1e-12);
+    assert!((y.stddev() - (0.1 / 2.718281828459045)).abs() < 1e-12);
+}
