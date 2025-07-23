@@ -6,9 +6,16 @@ license = "MIT"
 description = "A modern uncertainty propagation library."
 
 [lib]
-name = "_properr"
-crate-type = ["cdylib"]
+crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.19", features = ["extension-module"] }
 once_cell = "1"
+
+[dependencies.pyo3]
+version = "0.19"
+optional = true
+default-features = false
+features = ["extension-module", "macros"]
+
+[features]
+python = ["pyo3"]

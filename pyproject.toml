@@ -15,4 +15,5 @@ authors = [{name = "Properr Developers", email = "devs@example.com"}]
 bindings = "pyo3"
 # Install the extension inside the Python package
 module-name = "properr._properr"
+features = ["python"]
 
