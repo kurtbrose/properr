@@ -97,6 +97,14 @@ impl std::ops::Sub for &UncertainValue {
     }
 }
 
+impl std::ops::Mul for &UncertainValue {
+    type Output = UncertainValue;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        self.mul(rhs)
+    }
+}
+
 impl UncertainValue {
     /// Nominal value of this quantity
     pub fn nominal(&self) -> f64 {
@@ -118,7 +126,8 @@ impl UncertainValue {
         self.sub_internal(other)
     }
 
-    fn __mul__(&self, other: &UncertainValue) -> UncertainValue {
+    /// Multiply two uncertain values
+    pub fn mul(&self, other: &UncertainValue) -> UncertainValue {
         self.mul_internal(other)
     }
 }
@@ -160,6 +169,10 @@ impl UncertainValue {
 
     fn __sub__(&self, other: &UncertainValue) -> UncertainValue {
         self.sub(other)
+    }
+
+    fn __mul__(&self, other: &UncertainValue) -> UncertainValue {
+        self.mul(other)
     }
 }
 
