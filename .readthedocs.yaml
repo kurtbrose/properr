@@ -8,8 +8,8 @@ build:
 
 python:
   install:
-    - path: .
-      editable: true
+    - method: pip
+      path: .
       extra_requirements:
         - test
     - requirements: docs/requirements.txt
